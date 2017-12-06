@@ -1,0 +1,28 @@
+{
+    "myProp": {
+        "default": "myDefaultValue",
+        "local": "myLocalValue",
+        "dev": "myDevValue",
+        "prod": "myProdValue"
+    },
+    "parentProp": {
+        "childProp": {
+            "local": false,
+            "dev": true,
+            "prod": false
+        },
+        "otherChildProp": {
+            "default": ["item", 1, true]
+        }
+    },
+    "myObject": {
+        "default": {
+            "foo": 1,
+            "bar": 2
+        },
+        "dev": {
+            "bar": 3,
+            "foobar": 4
+        }
+    }
+}
