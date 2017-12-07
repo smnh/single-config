@@ -22,7 +22,7 @@ one place, including different node.js environments.
 
 `config.json`
 
-```
+```json
 {
     "myProp": {
         "default": "myDefaultValue",
@@ -60,7 +60,7 @@ one place, including different node.js environments.
 
 `config.js`
 
-```
+```javascript
 // This file was automatically generated at ...
 module.exports = {
     "env": "development",
@@ -79,7 +79,7 @@ module.exports = {
 
 Using the configuration in application modules:
 
-```
+```javascript
 const config = require('./config');
 console.assert(config.parentProp.childProp);
 ```
@@ -117,7 +117,7 @@ all other sibling nodes at this level must also be environment selectors.
 
 `config.json`
 
-```
+```json
 {
     "simpleValue": {
         "default": "hello",
@@ -135,7 +135,7 @@ all other sibling nodes at this level must also be environment selectors.
 
 `$ NODE_ENV=development buildconfig`
 
-```
+```javascript
 const config = require('./config');
 console.assert(config.simpleValue === "hello");
 console.assert(config.object.nestedValue === "bar");
@@ -144,7 +144,7 @@ console.assert(config.object.nestedValue === "bar");
 
 ## Selected values can be any JSON supported types
 
-```
+```json
 {
     "simpleValue": {
         "local": {
@@ -172,7 +172,7 @@ defined for the current environment (if `default` was not defined).
 
 Therefore, instead of doing this:
 
-```
+```json
 {
     "parentProp": {
         "dev": {
@@ -189,7 +189,7 @@ Therefore, instead of doing this:
 
 do this:
 
-```
+```json
 {
     "parentProp": {
         "childProp1": {
