@@ -1,14 +1,14 @@
-// This file was automatically generated at 2017-12-06T20:24:36.901Z
+// This file was automatically generated at 2017-12-09T22:29:30.218Z
 module.exports = {
     "env": "development",
-    "myProp": "myDevValue",
+    "prop": "devValue",
     "parentProp": {
         "childProp": true,
         "otherChildProp": ["item", 1, true]
     },
-    "myObject": {
+    "objectProp": {
         "foo": 1,
         "bar": 3,
-        "foobar": 4
+        "baz": 4
     }
 };

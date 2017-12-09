@@ -3,9 +3,11 @@
 [![Build Status](https://travis-ci.org/smnh/single-config.svg?branch=master)](https://travis-ci.org/smnh/single-config)
 [![Coverage Status](https://coveralls.io/repos/github/smnh/single-config/badge.svg)](https://coveralls.io/github/smnh/single-config)
 
-Small node.js script that helps creating and maintaining all
-configuration in one place, including the configuration of different
-node.js environments.
+Small Node.js script that generates configuration model, based on the
+value of NODE_ENV, from a single JSON configuration file which specifies
+configuration values for all possible environments.
+
+![config-demo](./etc/config-demo.png)
 
 
 ## Why
