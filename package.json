@@ -8,7 +8,8 @@
   },
   "scripts": {
     "buildconfig-demo": "NODE_ENV=development node ./src/bin.js --input=config-demo.json --output=config-demo.js",
-    "test": "jest --config=jest.config.json"
+    "test": "jest --config=jest.config.json",
+    "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls"
   },
   "repository": {
     "type": "git",
