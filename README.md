@@ -1,7 +1,8 @@
-# Build Config
+# Single Config
 
-Small node.js script that helps to create and maintain configuration in
-one place, including different node.js environments.
+Small node.js script that helps creating and maintaining all
+configuration in one place, including the configuration of different
+node.js environments.
 
 
 ## Why
@@ -55,13 +56,13 @@ one place, including different node.js environments.
 
 `$ NODE_ENV=development buildconfig --input=./config.json --output=./config.js`
 
-> In the above example the --input and --output arguments are redundant
-  as they have been set to their default values.
+> In the above example the `--input` and the `--output` arguments are
+  redundant as they have been set to their default values.
 
 `config.js`
 
 ```javascript
-// This file was automatically generated at ...
+// This file was automatically generated at <ISO_DATE>
 module.exports = {
     "env": "development",
     "myProp": "myDevValue",
@@ -102,11 +103,12 @@ console.assert(config.parentProp.childProp);
 
 > Matching selectors for `development` and `production` are `dev` and
   `prod` respectively. This is to allow using the shorter versions
-  inside the configuration json.
+  inside configuration json.
 
-> Omitting `default` will throw an error if build script will not find
-  selector matching the current `NODE_ENV`. Not using `default` is a
-  good way to enforce writing selectors for every property.
+> Omitting `default` will throw an error if the build script will not
+  find selector matching the current `NODE_ENV`. Therefore, not using
+  `default` is a good way to enforce writing selectors for every
+  environment.
 
 
 ## Environment selectors level
@@ -160,12 +162,12 @@ console.assert(config.object.nestedValue === "bar");
 }
 ```
 
-It is generally suggested to use environment selectors as a last nesting
-level that references scalar values instead of setting nested objects as
-selector values. This allows better visual comparison between environment
-values. After all, this is the main idea behind this kind of configuration
-management - "To easily maintain and quickly identify all possible
-configuration values among different environments".
+It is generally suggested to use environment selectors as the last nesting
+level that references scalar values instead of nested objects. This allows
+better visual comparison between environment values. After all, this was
+the main idea behind this kind of configuration management - "To easily
+maintain and quickly identify all possible configuration values among
+different environments".
 
 Another advantage of doing this is making sure that all properties where
 defined for the current environment (if `default` was not defined).
@@ -224,5 +226,5 @@ error if one of them is not fulfilled.
 - Environment selector level must include only environment selectors. If
   environment selector is used, then all its sibling nodes must be
   environment selectors as well.
-- environment selectors must appear at some level of any branch of the
+- Environment selectors must appear at some level of any branch of the
   configuration json.

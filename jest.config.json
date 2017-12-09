@@ -1,0 +1,5 @@
+{
+    "transform": {},
+    "collectCoverage": true,
+    "collectCoverageFrom": ["**/config-mapper.js"]
+}

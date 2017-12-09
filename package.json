@@ -2,13 +2,13 @@
   "name": "single-config",
   "version": "1.0.1",
   "description": "Builds a module from a single json configuration file using current NODE_ENV for selecting the matching leaf values",
-  "main": "index.js",
+  "main": "./src/index.js",
   "bin": {
-    "buildconfig": "index.js"
+    "buildconfig": "./src/bin.js"
   },
   "scripts": {
-    "buildconfig-demo": "NODE_ENV=development node index.js --input=config-demo.json --output=config-demo.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "buildconfig-demo": "NODE_ENV=development node ./src/bin.js --input=config-demo.json --output=config-demo.js",
+    "test": "jest --config=jest.config.json"
   },
   "repository": {
     "type": "git",
@@ -33,5 +33,8 @@
   "dependencies": {
     "argparse": "^1.0.9",
     "lodash": "^4.17.4"
+  },
+  "devDependencies": {
+    "jest": "^21.2.1"
   }
 }
