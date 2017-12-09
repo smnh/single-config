@@ -28,7 +28,7 @@ function buildConfig(inputFilename, outputFilename) {
 
     console.info(`building configuration, NODE_ENV=${env}, input=${inputFilePath}, output=${outputFilePath}`);
 
-    let mappedConfig = this.mapConfig(configObj, env);
+    let mappedConfig = mapConfig(configObj, env);
     let moduleDefinition = `// This file was automatically generated at ${(new Date()).toISOString()}\nmodule.exports = ${JSON.stringify(mappedConfig, null, 4)};\n`;
 
     utils.ensureDirectoryExistence(outputFilePath);
