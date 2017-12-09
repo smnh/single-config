@@ -36,6 +36,7 @@
     "lodash": "^4.17.4"
   },
   "devDependencies": {
+    "coveralls": "^3.0.0",
     "jest": "^21.2.1"
   }
 }
