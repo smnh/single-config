@@ -93,9 +93,11 @@ console.assert(config.parentProp.childProp);
 
 ## buildconfig Arguments
 
-- `input`: The file path of the input json relative to the current working directory, default: ./config.json
-- `output`: The file path of the output module relative to the current working directory, default: ./config.js
-- `envSelectors`: TBD - not implemented yet (override or add new environment selectors, except `default`)
+- `--input`: The file path of the input json relative to the current working directory, default: ./config.json
+- `--output`: The file path of the output module relative to the current working directory, default: ./config.js
+- `--env`: Environment value (for dev or prod specify "development" or "production"), if specified overrides NODE_ENV
+- `--add-selectors`: Comma-separated selectors that will be added to the default set of selectors, ignored if --use-selectors is specified
+- `--use-selectors`: Comma-separated selectors that will be used instead the default set of selectors, the `default` selector will not be overridden
 
 
 ## Environment selectors

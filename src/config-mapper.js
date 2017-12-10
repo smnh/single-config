@@ -10,14 +10,19 @@ const NOD_ENV_ALIASES = {
 
 module.exports = ConfigMapper;
 
-function ConfigMapper(env) {
-    if (!env) {
-        env = process.env.NODE_ENV || "development";
-    }
-    this.env = env;
+function ConfigMapper(options) {
+    options = options || {};
+    this.env = options.env || process.env.NODE_ENV || "development";
     this.confPath = [];
-    let envSelector = (env in NOD_ENV_ALIASES) ? NOD_ENV_ALIASES[env] : env;
-    if (!WHITELIST_SELECTORS.includes(envSelector)) {
+    if (options.useSelectors) {
+        this.allowedSelectors = _.uniq([DEFAULT_SELECTOR].concat(options.useSelectors));
+    } else if (options.addSelectors) {
+        this.allowedSelectors = _.uniq(WHITELIST_SELECTORS.concat(options.addSelectors));
+    } else {
+        this.allowedSelectors = WHITELIST_SELECTORS;
+    }
+    let envSelector = (this.env in NOD_ENV_ALIASES) ? NOD_ENV_ALIASES[this.env] : this.env;
+    if (!this.allowedSelectors.includes(envSelector)) {
         utils.logErrorAndThrow(`error building config, environment selector '${envSelector}' is not supported`);
     }
     this.envSelector = envSelector;
@@ -29,10 +34,10 @@ ConfigMapper.prototype.validateConfigObjectLevel = function(obj, envSelectorOnly
     // And vice-versa, when we check configuration node for configuration
     // properties, we don't want environment selectors to be present on that node.
     Object.keys(obj).forEach(function(key) {
-        if (envSelectorOnly ^ WHITELIST_SELECTORS.includes(key)) {
+        if (envSelectorOnly ^ this.allowedSelectors.includes(key)) {
             utils.logErrorAndThrow(`error building config, illegal structure: reached configuration node '${this.confPath.join('.')}' having environment selector mixed with configuration field`);
         }
-    });
+    }, this);
 };
 
 ConfigMapper.prototype.mapConfig = function(obj) {
