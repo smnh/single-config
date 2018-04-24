@@ -33,13 +33,26 @@ parser.addArgument(['--use-selectors'], {
     help: 'Comma-separated selectors that will be used instead the default set of selectors, the default selector will not be overridden'
 });
 
+parser.addArgument(['--module-type'], {
+    choices: ['node', 'globals'],
+    defaultValue: 'node',
+    help: 'JavaScript module type that will be used for the output file, default is "node" which is CommonJS-like environments that support module.exports.'
+});
+
+parser.addArgument(['--global-module-name'], {
+    defaultValue: 'config',
+    help: 'The name of the global variable that will be used if module-type is globals.'
+});
+
 const args = parser.parseArgs();
 const inputFilename = args.input;
 const outputFilename = args.output;
 const options = {
     env: args.env,
     addSelectors: args.add_selectors,
-    useSelectors: args.use_selectors
+    useSelectors: args.use_selectors,
+    moduleType: args.module_type,
+    globalModuleName: args.global_module_name
 };
 
 configMapper.buildConfig(inputFilename, outputFilename, options);

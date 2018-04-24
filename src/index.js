@@ -41,8 +41,22 @@ function buildConfig(inputFilename, outputFilename, options) {
     let mappedConfig = mapConfig(configObj, configMapperOptions);
     let moduleDefinition = `// This file was automatically generated at ${(new Date()).toISOString()}\nmodule.exports = ${JSON.stringify(mappedConfig, null, 4)};\n`;
 
+    let moduleType = 'node';
+    if (options.moduleType === 'globals') {
+        moduleType = options.moduleType;
+    }
+
+    if (moduleType === 'node') {
+        moduleDefinition = `// This file was automatically generated at ${(new Date()).toISOString()}\nmodule.exports = ${JSON.stringify(mappedConfig, null, 4)};\n`;
+    } else if (moduleType === 'globals') {
+        let globalVarName = options.globalModuleName || 'config';
+        moduleDefinition = `// This file was automatically generated at ${(new Date()).toISOString()}\n${globalVarName} = ${JSON.stringify(mappedConfig, null, 4)};\n`;
+    }
+
     utils.ensureDirectoryExistence(outputFilePath);
     fs.writeFileSync(outputFilePath, moduleDefinition);
 
-    module.exports.config = require(outputFilePath);
+    if (moduleType === 'node') {
+        module.exports.config = require(outputFilePath);
+    }
 }

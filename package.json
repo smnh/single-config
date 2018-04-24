@@ -1,6 +1,6 @@
 {
   "name": "single-config",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Builds a module from a single json configuration file using current NODE_ENV for selecting the matching leaf values",
   "main": "./src/index.js",
   "bin": {
