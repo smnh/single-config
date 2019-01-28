@@ -1,6 +1,6 @@
 {
   "name": "single-config",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Builds a module from a single json configuration file using current NODE_ENV for selecting the matching leaf values",
   "main": "./src/index.js",
   "bin": {
@@ -33,7 +33,7 @@
   "license": "MIT",
   "dependencies": {
     "argparse": "^1.0.9",
-    "lodash": "^4.17.4"
+    "lodash": "^4.17.11"
   },
   "devDependencies": {
     "coveralls": "^3.0.0",

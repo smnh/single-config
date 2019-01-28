@@ -16,8 +16,8 @@ function mapConfig(configObj, options) {
 }
 
 function buildConfig(inputFilename, outputFilename, options) {
-    let inputFilePath = path.join(process.cwd(), inputFilename);
-    let outputFilePath = path.join(process.cwd(), outputFilename);
+    let inputFilePath = path.resolve(inputFilename);
+    let outputFilePath = path.resolve(outputFilename);
     let configMapperOptions = {};
 
     if (!fs.existsSync(inputFilePath)) {
