@@ -2,12 +2,14 @@ const path = require('path');
 const fs = require('fs');
 const utils = require('./utils');
 const ConfigMapper = require('./config-mapper');
+const renderConfig = require('./config-render');
 
 module.exports = {
     ConfigMapper: ConfigMapper,
-    mapConfig: mapConfig,
-    buildConfig: buildConfig,
-    config: null
+    config: null,
+    mapConfig,
+    renderConfig,
+    buildConfig
 };
 
 function mapConfig(configObj, options) {
@@ -38,25 +40,13 @@ function buildConfig(inputFilename, outputFilename, options) {
 
     console.info(`building configuration, env=${configMapperOptions.env}, input=${inputFilePath}, output=${outputFilePath}`);
 
-    let mappedConfig = mapConfig(configObj, configMapperOptions);
-    let moduleDefinition = `// This file was automatically generated at ${(new Date()).toISOString()}\nmodule.exports = ${JSON.stringify(mappedConfig, null, 4)};\n`;
-
-    let moduleType = 'node';
-    if (options.moduleType === 'globals') {
-        moduleType = options.moduleType;
-    }
-
-    if (moduleType === 'node') {
-        moduleDefinition = `// This file was automatically generated at ${(new Date()).toISOString()}\nmodule.exports = ${JSON.stringify(mappedConfig, null, 4)};\n`;
-    } else if (moduleType === 'globals') {
-        let globalVarName = options.globalModuleName || 'config';
-        moduleDefinition = `// This file was automatically generated at ${(new Date()).toISOString()}\n${globalVarName} = ${JSON.stringify(mappedConfig, null, 4)};\n`;
-    }
+    const mappedConfig = mapConfig(configObj, configMapperOptions);
+    const moduleDefinition = renderConfig(options, mappedConfig);
 
     utils.ensureDirectoryExistence(outputFilePath);
     fs.writeFileSync(outputFilePath, moduleDefinition);
 
-    if (moduleType === 'node') {
+    if (options.moduleType === 'node') {
         module.exports.config = require(outputFilePath);
     }
 }

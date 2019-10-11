@@ -239,4 +239,23 @@ describe('Test ConfigMapper', () => {
         expect(mappedConfig).toEqual(expectedMappedObj);
     });
 
+    test('export esm config', () => {
+        const configMapper = require('../src/index');
+        const options = {
+            env: "dev",
+            moduleType: "esm"
+        };
+        const configObj = {
+            "prop": {
+                "default": "defaultValue",
+                "dev": "devValue",
+                "prod": "prodValue"
+            }
+        };
+        const mappedConfig = configMapper.mapConfig(configObj, options);
+        const result = configMapper.renderConfig(options, mappedConfig);
+
+        expect(result).toMatch(/export const env = "dev";\nexport const prop = "devValue";/);
+    });
+
 });
