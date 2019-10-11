@@ -255,7 +255,7 @@ describe('Test ConfigMapper', () => {
         const mappedConfig = configMapper.mapConfig(configObj, options);
         const result = configMapper.renderConfig(options, mappedConfig);
 
-        expect(result).toMatch(/export const env = "dev";\nexport const prop = "devValue";/);
+        expect(result).toMatch(/export const env = "dev";\nexport const prop = "devValue";\nexport default {env, prop};/);
     });
 
 });
