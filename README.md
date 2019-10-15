@@ -219,6 +219,28 @@ its properties will be shallowly merged:
 `Object.assign({}, obj['default'], obj[NODE_ENV])`.
 
 
+## Example package.json scripts
+
+Following example demonstrates how to add a script to package.json file for
+running the buildconfig. This allows chaining the buildconfig task as part of a
+build script.
+
+```
+{
+  "name": "example",
+  "version": "1.0.0",
+  "scripts": {
+    "build-config-local": "buildconfig --env local",
+    "build-config-dev": "buildconfig --env development",
+    "build": "npm run build-config-local && webpack"
+  },
+  "dependencies": {
+    "single-config": "^1.0.0",
+    ...
+  }
+}
+```
+
 ## Configuration JSON Restriction
 
 The build script checks for the following restrictions and will throw an
