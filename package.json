@@ -1,6 +1,6 @@
 {
   "name": "single-config",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Builds a module from a single json configuration file using current NODE_ENV for selecting the matching leaf values",
   "main": "./src/index.js",
   "bin": {
@@ -9,7 +9,8 @@
   "scripts": {
     "buildconfig-demo": "NODE_ENV=development node ./src/bin.js --input=config-demo.json --output=config-demo.js",
     "test": "jest --config=jest.config.json",
-    "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls"
+    "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
+    "version-patch": "npm version patch -m \"bumped version to v%s\""
   },
   "repository": {
     "type": "git",
