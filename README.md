@@ -60,7 +60,7 @@ configuration values for all possible environments.
 }
 ```
 
-`$ NODE_ENV=development buildconfig --input=./config.json --output=./config.js`
+`$ buildconfig --input=./config.json --output=./config.js --env=development`
 
 > In the above example the `--input` and the `--output` arguments are
   redundant as they have been set to their default values.
@@ -143,7 +143,7 @@ all other sibling nodes at this level must also be environment selectors.
 }
 ```
 
-`$ NODE_ENV=development buildconfig`
+`$ buildconfig --env=development`
 
 ```javascript
 const config = require('./config');
