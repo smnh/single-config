@@ -1,3 +1,4 @@
+const fs = require('fs');
 
 describe('Test ConfigMapper', () => {
 
@@ -70,6 +71,73 @@ describe('Test ConfigMapper', () => {
         let mappedConfig = configMapper.mapConfig(configObj, options);
 
         expect(mappedConfig).toEqual(expectedMappedObj);
+    });
+
+    test('test build config with CommonJS as default moduleType', () => {
+        const configObj = {
+            "prop": {
+                "default": "defaultValue",
+                "dev": "devValue",
+                "prod": "prodValue"
+            }
+        };
+        const expectedMappedObj = {
+            "env": "dev",
+            "prop": "devValue"
+        };
+        const expectedOutputRe = new RegExp(`^[^\\n]*\\nmodule\\.exports = ${JSON.stringify(expectedMappedObj, null, 4).replace(/\n/g, '\\n')};\\n$`);
+        const path = require('path');
+        let inputFilePath = path.resolve(__dirname, 'test-config.json');
+        let outputFilePath = path.resolve(__dirname, 'config.js');
+        fs.writeFileSync(inputFilePath, JSON.stringify(configObj));
+
+        let configMapper = require('../src/index');
+        configMapper.buildConfig(inputFilePath, outputFilePath, {env: 'dev'});
+
+        fs.unlinkSync(inputFilePath);
+        const outputFileExists = fs.existsSync(outputFilePath);
+        let output;
+        if (outputFileExists) {
+            output = fs.readFileSync(outputFilePath, 'utf8');
+            fs.unlinkSync(outputFilePath);
+        }
+
+        expect(outputFileExists).toBeTruthy();
+        expect(configMapper.config).toEqual(expectedMappedObj);
+        expect(output).toMatch(expectedOutputRe);
+    });
+
+    test('test build config with globals as moduleType', () => {
+        const configObj = {
+            "prop": {
+                "default": "defaultValue",
+                "dev": "devValue",
+                "prod": "prodValue"
+            }
+        };
+        const expectedMappedObj = {
+            "env": "dev",
+            "prop": "devValue"
+        };
+        const expectedOutputRe = new RegExp(`^[^\\n]*\\nconfig = ${JSON.stringify(expectedMappedObj, null, 4).replace(/\n/g, '\\n')};\\n$`);
+        const path = require('path');
+        let inputFilePath = path.resolve(__dirname, 'test-config.json');
+        let outputFilePath = path.resolve(__dirname, 'config.js');
+        fs.writeFileSync(inputFilePath, JSON.stringify(configObj));
+
+        let configMapper = require('../src/index');
+        configMapper.buildConfig(inputFilePath, outputFilePath, {env: 'dev', moduleType: 'globals'});
+
+        fs.unlinkSync(inputFilePath);
+        const outputFileExists = fs.existsSync(outputFilePath);
+        let output;
+        if (outputFileExists) {
+            output = fs.readFileSync(outputFilePath, 'utf8');
+            fs.unlinkSync(outputFilePath);
+        }
+
+        expect(outputFileExists).toBeTruthy();
+        expect(output).toMatch(expectedOutputRe);
     });
 
     test('build fails if provided env is not supported', () => {
