@@ -99,6 +99,7 @@ console.assert(config.parentProp.childProp);
 - `--env`: Environment value (for dev or prod specify "development" or "production"), if specified overrides NODE_ENV
 - `--add-selectors`: Comma-separated selectors that will be added to the default set of selectors, ignored if --use-selectors is specified
 - `--use-selectors`: Comma-separated selectors that will be used instead the default set of selectors, the `default` selector will not be overridden
+- `--module-type`: Type of exported module. Possible values: node, globals, esm. Default is node.
 
 
 ## Environment selectors

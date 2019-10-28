@@ -34,7 +34,7 @@ parser.addArgument(['--use-selectors'], {
 });
 
 parser.addArgument(['--module-type'], {
-    choices: ['node', 'globals'],
+    choices: ['node', 'globals', 'esm'],
     defaultValue: 'node',
     help: 'JavaScript module type that will be used for the output file, default is "node" which is CommonJS-like environments that support module.exports.'
 });
