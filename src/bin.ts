@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-const ArgumentParser = require('argparse').ArgumentParser;
-const configMapper = require('./index');
+import { ArgumentParser } from 'argparse';
+import { buildConfig } from './index';
 
 const parser = new ArgumentParser({
     version: '1.0.0',
@@ -55,4 +55,4 @@ const options = {
     globalModuleName: args.global_module_name
 };
 
-configMapper.buildConfig(inputFilename, outputFilename, options);
+buildConfig(inputFilename, outputFilename, options);
