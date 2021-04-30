@@ -11,7 +11,7 @@ describe('Test ConfigMapper', () => {
     });
 
     beforeEach(() => {
-        jest.resetModules()
+        jest.resetModules();
     });
 
     test('use "development" if env was not provided and NODE_ENV was not defined', () => {
@@ -28,7 +28,7 @@ describe('Test ConfigMapper', () => {
             "prop": "devValue"
         };
 
-        let configMapper = require('../src/index');
+        let configMapper = require('../dist/index');
         let mappedConfig = configMapper.mapConfig(configObj);
 
         expect(mappedConfig).toEqual(expectedMappedConfig);
@@ -47,7 +47,7 @@ describe('Test ConfigMapper', () => {
             "env": "production",
             "prop": "prodValue"
         };
-        let configMapper = require('../src/index');
+        let configMapper = require('../dist/index');
         let mappedConfig = configMapper.mapConfig(configObj);
 
         expect(mappedConfig).toEqual(expectedMappedObj);
@@ -67,13 +67,13 @@ describe('Test ConfigMapper', () => {
             "env": "development",
             "prop": "devValue"
         };
-        let configMapper = require('../src/index');
+        let configMapper = require('../dist/index');
         let mappedConfig = configMapper.mapConfig(configObj, options);
 
         expect(mappedConfig).toEqual(expectedMappedObj);
     });
 
-    test('test build config with CommonJS as default moduleType', () => {
+    test('test build config with CommonJS as default moduleType', async () => {
         const configObj = {
             "prop": {
                 "default": "defaultValue",
@@ -91,8 +91,8 @@ describe('Test ConfigMapper', () => {
         let outputFilePath = path.resolve(__dirname, 'config.js');
         fs.writeFileSync(inputFilePath, JSON.stringify(configObj));
 
-        let configMapper = require('../src/index');
-        configMapper.buildConfig(inputFilePath, outputFilePath, {env: 'dev'});
+        let configMapper = require('../dist/index');
+        await configMapper.buildConfig(inputFilePath, outputFilePath, {env: 'dev'});
 
         fs.unlinkSync(inputFilePath);
         const outputFileExists = fs.existsSync(outputFilePath);
@@ -107,7 +107,7 @@ describe('Test ConfigMapper', () => {
         expect(output).toMatch(expectedOutputRe);
     });
 
-    test('test build config with globals as moduleType', () => {
+    test('test build config with globals as moduleType', async () => {
         const configObj = {
             "prop": {
                 "default": "defaultValue",
@@ -125,8 +125,8 @@ describe('Test ConfigMapper', () => {
         let outputFilePath = path.resolve(__dirname, 'config.js');
         fs.writeFileSync(inputFilePath, JSON.stringify(configObj));
 
-        let configMapper = require('../src/index');
-        configMapper.buildConfig(inputFilePath, outputFilePath, {env: 'dev', moduleType: 'globals'});
+        let configMapper = require('../dist/index');
+        await configMapper.buildConfig(inputFilePath, outputFilePath, {env: 'dev', moduleType: 'globals'});
 
         fs.unlinkSync(inputFilePath);
         const outputFileExists = fs.existsSync(outputFilePath);
@@ -142,7 +142,7 @@ describe('Test ConfigMapper', () => {
 
     test('build fails if provided env is not supported', () => {
         expect(() => {
-            let configMapper = require('../src/index');
+            let configMapper = require('../dist/index');
             let options = {env: "unsupported"};
             let configObj = {};
             configMapper.mapConfig(configObj, options);
@@ -151,7 +151,7 @@ describe('Test ConfigMapper', () => {
 
     test('build fails if configuration is empty object', () => {
         expect(() => {
-            let configMapper = require('../src/index');
+            let configMapper = require('../dist/index');
             let options = {env: "development"};
             let configObj = {};
             configMapper.mapConfig(configObj, options);
@@ -160,7 +160,7 @@ describe('Test ConfigMapper', () => {
 
     test('build fails if configuration has a branch with scalar leaf node', () => {
         expect(() => {
-            let configMapper = require('../src/index');
+            let configMapper = require('../dist/index');
             let options = {env: "development"};
             let configObj = {
                 "normalProp": {
@@ -176,7 +176,7 @@ describe('Test ConfigMapper', () => {
 
     test('build fails if configuration node has provided env selector mixed with non selectors', () => {
         expect(() => {
-            let configMapper = require('../src/index');
+            let configMapper = require('../dist/index');
             let options = {env: "development"};
             let configObj = {
                 "prop": {
@@ -190,7 +190,7 @@ describe('Test ConfigMapper', () => {
 
     test('build fails if configuration node has only the default selector mixed with non selectors', () => {
         expect(() => {
-            let configMapper = require('../src/index');
+            let configMapper = require('../dist/index');
             let options = {env: "development"};
             let configObj = {
                 "prop": {
@@ -204,7 +204,7 @@ describe('Test ConfigMapper', () => {
 
     test('build fails if configuration node properties mixed with selectors other than default and the provided env selector', () => {
         expect(() => {
-            let configMapper = require('../src/index');
+            let configMapper = require('../dist/index');
             let options = {env: "development"};
             let configObj = {
                 "prop": {
@@ -217,7 +217,7 @@ describe('Test ConfigMapper', () => {
     });
 
     test('default value should be shallowly merged with provided env selector', () => {
-        let configMapper = require('../src/index');
+        let configMapper = require('../dist/index');
         let options = {env: "development"};
         let configObj = {
             "prop": {
@@ -245,7 +245,7 @@ describe('Test ConfigMapper', () => {
     });
 
     test('default value should be used if no provided env selector was specified', () => {
-        let configMapper = require('../src/index');
+        let configMapper = require('../dist/index');
         let options = {env: "development"};
         let configObj = {
             "prop": {
@@ -264,7 +264,7 @@ describe('Test ConfigMapper', () => {
     });
 
     test('use new set of selectors when useSelectors was provided', () => {
-        let configMapper = require('../src/index');
+        let configMapper = require('../dist/index');
         let options = {
             env: "devNew",
             useSelectors: ["devNew", "dev", "prod"]
@@ -286,7 +286,7 @@ describe('Test ConfigMapper', () => {
     });
 
     test('append selectors when addSelectors was provided', () => {
-        let configMapper = require('../src/index');
+        let configMapper = require('../dist/index');
         let options = {
             env: "devNew",
             addSelectors: ["devNew"]
