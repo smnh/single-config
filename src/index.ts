@@ -1,7 +1,12 @@
 import path from 'path';
-import fs from 'fs';
-import { logErrorAndThrow, ensureDirectoryExistence } from './utils';
+import { promises as fs } from 'fs';
+import {
+    logErrorAndThrow,
+    ensureDirectoryExistence,
+    fileExists,
+} from './utils';
 import { ConfigMapper, ConfigMapperOptions } from './config-mapper';
+import { generateTypeScriptModule } from './type-generation';
 
 export { ConfigMapper } from './config-mapper';
 
@@ -17,34 +22,39 @@ export function mapConfig(
 
 export interface BuildConfigOptions
     extends Omit<ConfigMapperOptions, 'useSelectors' | 'addSelectors'> {
-    useSelectors?: string;
-    addSelectors?: string;
-    moduleType?: 'globals' | 'node';
+    useSelectors?: string[];
+    addSelectors?: string[];
+    moduleType?: 'globals' | 'node' | 'typescript';
     globalModuleName?: string;
+    typeOnlyOutput?: string;
+    loadDynamicConfig?(
+        baseConfig: Record<string, any>
+    ): Promise<Record<string, any>>;
+    excludeDynamicConfigFromFile?: boolean;
 }
 
-export function buildConfig(
+export async function buildConfig(
     inputFilename: string,
     outputFilename: string,
     options: BuildConfigOptions
-) {
+): Promise<void> {
     const inputFilePath = path.resolve(inputFilename);
     const outputFilePath = path.resolve(outputFilename);
     const configMapperOptions: ConfigMapperOptions = {};
 
-    if (!fs.existsSync(inputFilePath)) {
+    if (!(await fileExists(inputFilePath))) {
         logErrorAndThrow(`error building config, ${inputFilePath} not found`);
     }
 
-    options = options || {};
+    options = options ?? {};
 
     configMapperOptions.env =
         options.env || process.env.NODE_ENV || 'development';
 
     if (options.useSelectors) {
-        configMapperOptions.useSelectors = options.useSelectors.split(',');
+        configMapperOptions.useSelectors = options.useSelectors;
     } else if (options.addSelectors) {
-        configMapperOptions.addSelectors = options.addSelectors.split(',');
+        configMapperOptions.addSelectors = options.addSelectors;
     }
 
     const configObj = require(inputFilePath);
@@ -53,37 +63,41 @@ export function buildConfig(
         `building configuration, env=${configMapperOptions.env}, input=${inputFilePath}, output=${outputFilePath}`
     );
 
-    const mappedConfig = mapConfig(configObj, configMapperOptions);
-    let moduleDefinition = `// This file was automatically generated at ${new Date().toISOString()}\nmodule.exports = ${JSON.stringify(
-        mappedConfig,
-        null,
-        4
-    )};\n`;
+    const baseConfig = mapConfig(configObj, configMapperOptions);
+    const extendedConfig =
+        await (options.loadDynamicConfig?.(baseConfig) ?? baseConfig);
+    const configToBeWritten =
+        options.excludeDynamicConfigFromFile
+        ? baseConfig
+        : extendedConfig;
 
-    let moduleType = 'node';
-    if (options.moduleType === 'globals') {
-        moduleType = options.moduleType;
-    }
+    const header = `// This file was automatically generated at ${new Date().toISOString()}`;
+    let moduleType = options.moduleType ?? 'node';
+    let moduleDefinition = `${header}
+module.exports = ${JSON.stringify(configToBeWritten, null, 4)};
+`;
 
-    if (moduleType === 'node') {
-        moduleDefinition = `// This file was automatically generated at ${new Date().toISOString()}\nmodule.exports = ${JSON.stringify(
-            mappedConfig,
-            null,
-            4
-        )};\n`;
-    } else if (moduleType === 'globals') {
+    await ensureDirectoryExistence(outputFilePath);
+
+    if (moduleType === 'globals') {
         const globalVarName = options.globalModuleName || 'config';
-        moduleDefinition = `// This file was automatically generated at ${new Date().toISOString()}\n${globalVarName} = ${JSON.stringify(
-            mappedConfig,
-            null,
-            4
-        )};\n`;
+        moduleDefinition = `${header}
+${globalVarName} = ${JSON.stringify(configToBeWritten, null, 4)};
+`;
+    } else if (moduleType === 'typescript') {
+        moduleDefinition = `${header}
+${generateTypeScriptModule(baseConfig, extendedConfig, options.excludeDynamicConfigFromFile ?? false, false)};
+`;
+        if (options.typeOnlyOutput) {
+            await fs.writeFile(options.typeOnlyOutput, `// This file was automatically generated together with ${outputFilePath}
+${generateTypeScriptModule(baseConfig, extendedConfig, options.excludeDynamicConfigFromFile ?? false, true)};
+`);
+        }
     }
 
-    ensureDirectoryExistence(outputFilePath);
-    fs.writeFileSync(outputFilePath, moduleDefinition);
+    await fs.writeFile(outputFilePath, moduleDefinition);
 
     if (moduleType === 'node') {
-        module.exports.config = require(outputFilePath);
+        config = require(outputFilePath);
     }
 }
