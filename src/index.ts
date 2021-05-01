@@ -15,7 +15,7 @@ export let config: Record<string, any> | null = null;
 export function mapConfig(
     configObj: Record<string, any>,
     options: ConfigMapperOptions
-) {
+): Record<string, any> {
     const configMapper = new ConfigMapper(options);
     return configMapper.mapConfig(configObj);
 }
@@ -65,9 +65,8 @@ export async function buildConfig(
 
     const baseConfig = mapConfig(configObj, configMapperOptions);
     const extendedConfig =
-        await (options.loadDynamicConfig?.(baseConfig) ?? baseConfig);
-    const configToBeWritten =
-        options.excludeDynamicConfigFromFile
+        (await options.loadDynamicConfig?.(baseConfig)) ?? baseConfig;
+    const configToBeWritten = options.excludeDynamicConfigFromFile
         ? baseConfig
         : extendedConfig;
 
@@ -86,12 +85,25 @@ ${globalVarName} = ${JSON.stringify(configToBeWritten, null, 4)};
 `;
     } else if (moduleType === 'typescript') {
         moduleDefinition = `${header}
-${generateTypeScriptModule(baseConfig, extendedConfig, options.excludeDynamicConfigFromFile ?? false, false)};
+${generateTypeScriptModule(
+    baseConfig,
+    extendedConfig,
+    options.excludeDynamicConfigFromFile ?? false,
+    false
+)};
 `;
         if (options.typeOnlyOutput) {
-            await fs.writeFile(options.typeOnlyOutput, `// This file was automatically generated together with ${outputFilePath}
-${generateTypeScriptModule(baseConfig, extendedConfig, options.excludeDynamicConfigFromFile ?? false, true)};
-`);
+            await fs.writeFile(
+                options.typeOnlyOutput,
+                `// This file was automatically generated together with ${outputFilePath}
+${generateTypeScriptModule(
+    baseConfig,
+    extendedConfig,
+    options.excludeDynamicConfigFromFile ?? false,
+    true
+)};
+`
+            );
         }
     }
 
