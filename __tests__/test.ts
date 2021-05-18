@@ -163,21 +163,28 @@ describe('Test ConfigMapper', () => {
                 dev: 'devValue',
                 prod: 'prodValue',
             },
+            prodProp: {
+                default: null,
+                prod: 'prodPropValue',
+            },
         };
         const expectedOutput = `
 const config = {
     "env": "dev",
-    "prop": "devValue"
+    "prop": "devValue",
+    "prodProp": null
 };
 
 export type BaseConfig = {
-  "env": string,
-  "prop": string
+    "env": string,
+    "prop": string,
+    "prodProp": (null | string)
 };
 
 export type Config = {
-  "env": string,
-  "prop": string
+    "env": string,
+    "prop": string,
+    "prodProp": (null | string)
 };
 
 export default (config as Config);

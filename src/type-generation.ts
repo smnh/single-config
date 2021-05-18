@@ -1,5 +1,13 @@
 type Type =
-    | { type: 'string' | 'number' | 'boolean' | 'null' | 'undefined' | 'unknown' }
+    | {
+          type:
+              | 'string'
+              | 'number'
+              | 'boolean'
+              | 'null'
+              | 'undefined'
+              | 'unknown';
+      }
     | { type: 'array'; items: Type }
     | {
           type: 'object';
@@ -176,9 +184,12 @@ function infer(obj: unknown): Type {
                 if (Array.isArray(obj)) {
                     return {
                         type: 'array',
-                        items: (obj as unknown[]).reduce<Type>((acc, v) => unify(acc, infer(v)), {
-                            type: 'unknown',
-                        } as Type),
+                        items: (obj as unknown[]).reduce<Type>(
+                            (acc, v) => unify(acc, infer(v)),
+                            {
+                                type: 'unknown',
+                            } as Type
+                        ),
                     };
                 } else {
                     return {
@@ -222,32 +233,38 @@ function stringify(type: Type): string {
         const fields = type.fields
             .map(({ key, value }) => `"${key}": ${stringify(value)}`)
             .join(',\n');
-        return `{\n${indent(fields, '  ')}\n}`;
+        return `{\n${indent(fields, '    ')}\n}`;
     }
     return type.type;
 }
 
-export function inferStringType(obj: unknown) {
+export function inferStringTypeOfValue(obj: unknown) {
     return stringify(deepFlatten(infer(obj)));
 }
 
+export function inferStringTypeOfMultipleValues(obj: unknown[]) {
+    const arrayType = deepFlatten(infer(obj));
+    if (arrayType.type !== 'array') {
+        throw new Error('non-array type inferred from array value');
+    }
+    return stringify(arrayType.items);
+}
+
 export function generateTypeScriptModule(
-    baseConfig: unknown,
+    config: unknown,
     extendedConfig: unknown,
+    allEnvsBaseConfig: unknown[],
     exportBaseConfig: boolean,
     typesOnly: boolean
 ): string {
-    const config = typesOnly
-        ? {}
-        : exportBaseConfig
-        ? baseConfig
-        : extendedConfig;
     return `
-const config = ${JSON.stringify(config, null, 4)};
+const config = ${typesOnly ? '{} as any' : JSON.stringify(config, null, 4)};
 
-export type BaseConfig = ${inferStringType(baseConfig)};
+export type BaseConfig = ${inferStringTypeOfMultipleValues(allEnvsBaseConfig)};
 
-export type Config = ${inferStringType(extendedConfig)};
+export type Config = ${inferStringTypeOfMultipleValues(
+        [extendedConfig].concat(allEnvsBaseConfig)
+    )};
 
 export default (config as ${exportBaseConfig ? 'BaseConfig' : 'Config'});
 `;

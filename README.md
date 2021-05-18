@@ -342,3 +342,8 @@ and does not depend on the dynamic configuration functionality in any way. Of
 course, without dynamic configuration the two exported types, `BaseConfig` and
 `Config` will be identical. From the CLI, use the flag
 `--type-only-output FILE_NAME`.
+
+*Note*: `BaseConfig` is a type based on the static configuration of _all_
+environments. However, `Config` only includes dynamic configuration from the
+_current_ environment (and still, static configuration from all other
+environments).

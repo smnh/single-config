@@ -5,7 +5,11 @@ import {
     ensureDirectoryExistence,
     fileExists,
 } from './utils';
-import { ConfigMapper, ConfigMapperOptions } from './config-mapper';
+import {
+    computeAllowedSelectors,
+    ConfigMapper,
+    ConfigMapperOptions,
+} from './config-mapper';
 import { generateTypeScriptModule } from './type-generation';
 
 export { ConfigMapper } from './config-mapper';
@@ -63,15 +67,19 @@ export async function buildConfig(
         `building configuration, env=${configMapperOptions.env}, input=${inputFilePath}, output=${outputFilePath}`
     );
 
+    const moduleType = options.moduleType ?? 'node';
+
     const baseConfig = mapConfig(configObj, configMapperOptions);
     const extendedConfig =
-        (await options.loadDynamicConfig?.(baseConfig)) ?? baseConfig;
+        ((!options.excludeDynamicConfigFromFile ||
+            moduleType === 'typescript') &&
+            (await options.loadDynamicConfig?.(baseConfig))) ??
+        baseConfig;
     const configToBeWritten = options.excludeDynamicConfigFromFile
         ? baseConfig
         : extendedConfig;
 
     const header = `// This file was automatically generated at ${new Date().toISOString()}`;
-    let moduleType = options.moduleType ?? 'node';
     let moduleDefinition = `${header}
 module.exports = ${JSON.stringify(configToBeWritten, null, 4)};
 `;
@@ -84,10 +92,22 @@ module.exports = ${JSON.stringify(configToBeWritten, null, 4)};
 ${globalVarName} = ${JSON.stringify(configToBeWritten, null, 4)};
 `;
     } else if (moduleType === 'typescript') {
+        const allowedSelectors = computeAllowedSelectors(
+            options.useSelectors,
+            options.addSelectors
+        );
+        const allEnvsBaseConfig = allowedSelectors.map((selector) =>
+            mapConfig(configObj, {
+                ...configMapperOptions,
+                env: selector,
+            })
+        );
+
         moduleDefinition = `${header}
 ${generateTypeScriptModule(
-    baseConfig,
+    configToBeWritten,
     extendedConfig,
+    allEnvsBaseConfig,
     options.excludeDynamicConfigFromFile ?? false,
     false
 )}`;
@@ -96,8 +116,9 @@ ${generateTypeScriptModule(
                 options.typeOnlyOutput,
                 `// This file was automatically generated together with ${outputFilePath}
 ${generateTypeScriptModule(
-    baseConfig,
+    configToBeWritten,
     extendedConfig,
+    allEnvsBaseConfig,
     options.excludeDynamicConfigFromFile ?? false,
     true
 )};
