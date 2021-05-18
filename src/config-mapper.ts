@@ -8,6 +8,20 @@ const NODE_ENV_ALIASES: Record<string, string> = {
     production: 'prod',
 };
 
+export function computeAllowedSelectors(useSelectors?: string[], addSelectors?: string[]): string[] {
+    if (useSelectors) {
+        return _.uniq(
+            [DEFAULT_SELECTOR].concat(useSelectors)
+        );
+    }
+    if (addSelectors) {
+        return _.uniq(
+            WHITELIST_SELECTORS.concat(addSelectors)
+        );
+    }
+    return WHITELIST_SELECTORS;
+}
+
 export interface ConfigMapperOptions {
     env?: string;
     useSelectors?: string[];
@@ -24,17 +38,7 @@ export class ConfigMapper {
         options = options || {};
         this.env = options.env || process.env.NODE_ENV || 'development';
         this.confPath = [];
-        if (options.useSelectors) {
-            this.allowedSelectors = _.uniq(
-                [DEFAULT_SELECTOR].concat(options.useSelectors)
-            );
-        } else if (options.addSelectors) {
-            this.allowedSelectors = _.uniq(
-                WHITELIST_SELECTORS.concat(options.addSelectors)
-            );
-        } else {
-            this.allowedSelectors = WHITELIST_SELECTORS;
-        }
+        this.allowedSelectors = computeAllowedSelectors(options.useSelectors, options.addSelectors);
         const envSelector = NODE_ENV_ALIASES[this.env] ?? this.env;
         if (!this.allowedSelectors.includes(envSelector!)) {
             logErrorAndThrow(

@@ -1,5 +1,5 @@
 type Type =
-    | { type: 'string' | 'number' | 'boolean' | 'null' | 'undefined' | 'never' }
+    | { type: 'string' | 'number' | 'boolean' | 'null' | 'undefined' | 'unknown' }
     | { type: 'array'; items: Type }
     | {
           type: 'object';
@@ -8,11 +8,14 @@ type Type =
               value: Type;
           }[];
       }
-    | { type: 'alternatives'; options: Type[] };
+    | { type: 'union'; options: Type[] };
 
-type Alternatives = Type & { type: 'alternatives' };
+type Union = Type & { type: 'union' };
 
 // This function assumes both types are flattened.
+// It returns true if the two types are identical, except for object and union
+//   types, which always return false. This makes this utility function only useful
+//   for use in the flattenUnion function.
 function equals(left: Type, right: Type): boolean {
     if (left.type !== right.type) {
         return false;
@@ -21,23 +24,26 @@ function equals(left: Type, right: Type): boolean {
         return equals(left.items, right.items);
     }
 
-    // Objects and alternatives of course might be equal, but for our use in the
-    // flattenAlternatives function, it doesn't matter. We will unify them, and if
+    // Objects and union of course might be equal, but for our use in the
+    // flattenUnion function, it doesn't matter. We will unify them, and if
     // they're equal then no harm done.
     if (left.type === 'object' && right.type === 'object') {
         return false;
     }
-    if (left.type === 'alternatives' && right.type === 'alternatives') {
+    if (left.type === 'union' && right.type === 'union') {
         return false;
     }
 
     return true;
 }
 
+// This function co-recursively flattens (combines union-of-union type into a
+//   single union type) of a given type, checking all of its nested types. It's
+//   co-recursive counterpart is flattenUnion.
 function deepFlatten(type: Type): Type {
     switch (type.type) {
-        case 'alternatives':
-            return flattenAlternatives(type);
+        case 'union':
+            return flattenUnion(type);
         case 'array':
             return {
                 type: 'array',
@@ -56,12 +62,14 @@ function deepFlatten(type: Type): Type {
     }
 }
 
-function flattenAlternatives(group: Alternatives): Type {
+// This function flattens a union type (if any of its options are unions
+//   themselves, they are expanded). It is co-recursive with deepFlatten.
+function flattenUnion(group: Union): Type {
     const flattenedOptions = group.options
         .reduce((acc: Type[], option) => {
-            if (option.type === 'alternatives') {
-                const flattenedOption = flattenAlternatives(option);
-                if (flattenedOption.type === 'alternatives') {
+            if (option.type === 'union') {
+                const flattenedOption = flattenUnion(option);
+                if (flattenedOption.type === 'union') {
                     return acc.concat(flattenedOption.options);
                 }
                 return acc.concat([flattenedOption]);
@@ -93,22 +101,27 @@ function flattenAlternatives(group: Alternatives): Type {
         return uniqueOptions[0]!;
     }
     return {
-        type: 'alternatives',
+        type: 'union',
         options: uniqueOptions,
     };
 }
 
-// Fairly loose unifier, will prefer producing wider types.
+// Fairly loose unifier, optimizes for simplicity over correctness.
 function unify(rawLeft: Type, rawRight: Type): Type {
     const left = deepFlatten(rawLeft);
     const right = deepFlatten(rawRight);
-    if (left.type === 'never') {
+
+    // This unification rule simplifies the usage of the resulting type,
+    //   although technically this might misleading a user into thinking
+    //   unknown isn't an option.
+    if (left.type === 'unknown') {
         return right;
     }
-    if (right.type === 'never') {
+    if (right.type === 'unknown') {
         return left;
     }
-    if (left.type === right.type && left.type !== 'alternatives') {
+
+    if (left.type === right.type && left.type !== 'union') {
         if (left.type === 'array' && right.type === 'array') {
             return {
                 type: 'array',
@@ -142,12 +155,13 @@ function unify(rawLeft: Type, rawRight: Type): Type {
         return left;
     }
     return {
-        type: 'alternatives',
+        type: 'union',
         options: [left, right],
     };
 }
 
-function infer(obj: any): Type {
+// Infers the non-flattened type of a value.
+function infer(obj: unknown): Type {
     switch (typeof obj) {
         case 'string':
             return { type: 'string' };
@@ -162,9 +176,9 @@ function infer(obj: any): Type {
                 if (Array.isArray(obj)) {
                     return {
                         type: 'array',
-                        items: obj.reduce((acc, v) => unify(acc, infer(v)), {
-                            type: 'never',
-                        }),
+                        items: (obj as unknown[]).reduce<Type>((acc, v) => unify(acc, infer(v)), {
+                            type: 'unknown',
+                        } as Type),
                     };
                 } else {
                     return {
@@ -195,7 +209,7 @@ function stringify(type: Type): string {
         const items = stringify(type.items);
         return `${items}[]`;
     }
-    if (type.type === 'alternatives') {
+    if (type.type === 'union') {
         const options = type.options
             .map((option) => stringify(option))
             .join(' | ');
