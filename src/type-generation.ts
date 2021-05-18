@@ -216,12 +216,19 @@ function stringify(type: Type): string {
         return `(${options})`;
     }
     if (type.type === 'object') {
+        if (type.fields.length === 0) {
+            return '{}';
+        }
         const fields = type.fields
             .map(({ key, value }) => `"${key}": ${stringify(value)}`)
             .join(',\n');
         return `{\n${indent(fields, '  ')}\n}`;
     }
     return type.type;
+}
+
+export function inferStringType(obj: unknown) {
+    return stringify(deepFlatten(infer(obj)));
 }
 
 export function generateTypeScriptModule(
@@ -238,9 +245,9 @@ export function generateTypeScriptModule(
     return `
 const config = ${JSON.stringify(config, null, 4)};
 
-export type BaseConfig = ${stringify(deepFlatten(infer(baseConfig)))};
+export type BaseConfig = ${inferStringType(baseConfig)};
 
-export type Config = ${stringify(deepFlatten(infer(extendedConfig)))};
+export type Config = ${inferStringType(extendedConfig)};
 
 export default (config as ${exportBaseConfig ? 'BaseConfig' : 'Config'});
 `;
