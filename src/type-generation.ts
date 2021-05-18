@@ -257,14 +257,19 @@ export function generateTypeScriptModule(
     exportBaseConfig: boolean,
     typesOnly: boolean
 ): string {
+    const baseConfigType = inferStringTypeOfMultipleValues(allEnvsBaseConfig);
+    const configType = inferStringTypeOfMultipleValues(
+        [extendedConfig].concat(allEnvsBaseConfig)
+    );
+
     return `
 const config = ${typesOnly ? '{} as any' : JSON.stringify(config, null, 4)};
 
-export type BaseConfig = ${inferStringTypeOfMultipleValues(allEnvsBaseConfig)};
+export type BaseConfig = ${baseConfigType};
 
-export type Config = ${inferStringTypeOfMultipleValues(
-        [extendedConfig].concat(allEnvsBaseConfig)
-    )};
+export type Config = ${
+        baseConfigType === configType ? 'BaseConfig' : configType
+    };
 
 export default (config as ${exportBaseConfig ? 'BaseConfig' : 'Config'});
 `;

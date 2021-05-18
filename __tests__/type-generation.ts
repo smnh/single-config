@@ -1,4 +1,7 @@
-import { inferStringTypeOfValue, inferStringTypeOfMultipleValues } from '../src/type-generation';
+import {
+    inferStringTypeOfValue,
+    inferStringTypeOfMultipleValues,
+} from '../src/type-generation';
 
 describe('Test Type Generation', () => {
     test('infer primitive types correctly', () => {
@@ -23,7 +26,9 @@ describe('Test Type Generation', () => {
         expect(inferStringTypeOfValue([''])).toEqual('string[]');
         expect(inferStringTypeOfValue(['', ''])).toEqual('string[]');
         expect(inferStringTypeOfValue([true])).toEqual('boolean[]');
-        expect(inferStringTypeOfValue([true, 0])).toEqual('(boolean | number)[]');
+        expect(inferStringTypeOfValue([true, 0])).toEqual(
+            '(boolean | number)[]'
+        );
     });
 
     test('infer simple object types correctly', () => {
@@ -35,7 +40,9 @@ describe('Test Type Generation', () => {
     });
 
     test('infer complex types correctly', () => {
-        expect(inferStringTypeOfValue([{ a: 0 }, { b: true }, { a: '', b: true }])).toEqual(`{
+        expect(
+            inferStringTypeOfValue([{ a: 0 }, { b: true }, { a: '', b: true }])
+        ).toEqual(`{
     "a": (number | undefined | string),
     "b": (undefined | boolean)
 }[]`);
@@ -43,7 +50,13 @@ describe('Test Type Generation', () => {
     });
 
     test('infer multiple values type correctly', () => {
-        expect(inferStringTypeOfMultipleValues([{ a: 0 }, { b: true }, { a: '', b: true }])).toEqual(`{
+        expect(
+            inferStringTypeOfMultipleValues([
+                { a: 0 },
+                { b: true },
+                { a: '', b: true },
+            ])
+        ).toEqual(`{
     "a": (number | undefined | string),
     "b": (undefined | boolean)
 }`);

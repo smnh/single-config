@@ -181,11 +181,7 @@ export type BaseConfig = {
     "prodProp": (null | string)
 };
 
-export type Config = {
-    "env": string,
-    "prop": string,
-    "prodProp": (null | string)
-};
+export type Config = BaseConfig;
 
 export default (config as Config);
 `;
@@ -209,7 +205,9 @@ export default (config as Config);
         }
 
         expect(outputFileExists).toBeTruthy();
-        expect((output ?? '').split('\n').slice(1).join('\n')).toMatch(expectedOutput);
+        expect((output ?? '').split('\n').slice(1).join('\n')).toMatch(
+            expectedOutput
+        );
     });
 
     test('build fails if provided env is not supported', () => {
