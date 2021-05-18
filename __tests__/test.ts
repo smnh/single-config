@@ -156,6 +156,55 @@ describe('Test ConfigMapper', () => {
         expect(output).toMatch(expectedOutputRe);
     });
 
+    test('test build config with TypeScript as moduleType', async () => {
+        const configObj = {
+            prop: {
+                default: 'defaultValue',
+                dev: 'devValue',
+                prod: 'prodValue',
+            },
+        };
+        const expectedOutput = `
+const config = {
+    "env": "dev",
+    "prop": "devValue"
+};
+
+export type BaseConfig = {
+  "env": string,
+  "prop": string
+};
+
+export type Config = {
+  "env": string,
+  "prop": string
+};
+
+export default (config as Config);
+`;
+        const path = require('path');
+        const inputFilePath = path.resolve(__dirname, 'test-config.json');
+        const outputFilePath = path.resolve(__dirname, 'config.ts');
+        fs.writeFileSync(inputFilePath, JSON.stringify(configObj));
+
+        const configMapper = require('../src/index');
+        await configMapper.buildConfig(inputFilePath, outputFilePath, {
+            env: 'dev',
+            moduleType: 'typescript',
+        });
+
+        fs.unlinkSync(inputFilePath);
+        const outputFileExists = fs.existsSync(outputFilePath);
+        let output: string | undefined;
+        if (outputFileExists) {
+            output = fs.readFileSync(outputFilePath, 'utf8');
+            fs.unlinkSync(outputFilePath);
+        }
+
+        expect(outputFileExists).toBeTruthy();
+        expect((output ?? '').split('\n').slice(1).join('\n')).toMatch(expectedOutput);
+    });
+
     test('build fails if provided env is not supported', () => {
         expect(() => {
             const configMapper = require('../src/index');

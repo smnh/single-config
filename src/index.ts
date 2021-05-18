@@ -90,8 +90,7 @@ ${generateTypeScriptModule(
     extendedConfig,
     options.excludeDynamicConfigFromFile ?? false,
     false
-)};
-`;
+)}`;
         if (options.typeOnlyOutput) {
             await fs.writeFile(
                 options.typeOnlyOutput,
