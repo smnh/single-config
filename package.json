@@ -2,22 +2,22 @@
   "name": "single-config",
   "version": "2.0.0",
   "description": "Builds a module from a single json configuration file using current NODE_ENV for selecting the matching leaf values",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "bin": {
-    "buildconfig": "./dist/bin.js"
+    "buildconfig": "./dist/src/bin.js"
   },
   "scripts": {
     "build": "tsc",
     "prepack": "npm run build",
-    "buildconfig-demo": "npm run build && NODE_ENV=development node ./dist/bin.js --input=config-demo.json --output=config-demo.js",
-    "test": "npm run build && jest --config=jest.config.json",
+    "buildconfig-demo": "npm run build && NODE_ENV=development node ./dist/src/bin.js --input=config-demo.json --output=config-demo.js",
+    "test": "jest",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
     "version-patch": "npm version patch -m \"bumped version to v%s\""
   },
   "files": [
-    "dist/**/*.js",
-    "dist/**/*.d.ts"
+    "dist/src/**/*.js",
+    "dist/src/**/*.d.ts"
   ],
   "repository": {
     "type": "git",
@@ -46,11 +46,13 @@
   },
   "devDependencies": {
     "@types/argparse": "^1.0.38",
+    "@types/jest": "^26.0.23",
     "@types/lodash": "^4.14.168",
     "@types/node": "^15.0.1",
     "@types/object.fromentries": "^2.0.0",
     "coveralls": "^3.0.7",
     "jest": "^24.9.0",
+    "ts-jest": "^26.5.6",
     "typescript": "^4.2.4"
   }
 }
