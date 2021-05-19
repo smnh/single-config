@@ -225,8 +225,8 @@ function removeUndefinedFromUnion(type: UnionType): Type {
     } else {
         return {
             type: 'union',
-            options: type.options.filter(({ type }) => type !== 'undefined')
-        }
+            options: type.options.filter(({ type }) => type !== 'undefined'),
+        };
     }
 }
 
@@ -247,8 +247,13 @@ function stringify(type: Type): string {
         }
         const fields = type.fields
             .map(({ key, value }) => {
-                if (value.type === 'union' && value.options.some(({ type }) => type === 'undefined')) {
-                    return `"${key}"?: ${stringify(removeUndefinedFromUnion(value))}`;
+                if (
+                    value.type === 'union' &&
+                    value.options.some(({ type }) => type === 'undefined')
+                ) {
+                    return `"${key}"?: ${stringify(
+                        removeUndefinedFromUnion(value)
+                    )}`;
                 }
                 return `"${key}": ${stringify(value)}`;
             })
