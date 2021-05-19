@@ -118,7 +118,7 @@ ${generateTypeScriptModule(
         if (options.typeOnlyOutput) {
             await fs.writeFile(
                 options.typeOnlyOutput,
-                `// This file was automatically generated together with ${outputFilePath}
+                `// This file was automatically generated together with ${path.basename(outputFilePath)}
 ${generateTypeScriptModule(
     configToBeWritten,
     extendedConfig,
