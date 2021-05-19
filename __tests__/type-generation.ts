@@ -43,8 +43,8 @@ describe('Test Type Generation', () => {
         expect(
             inferStringTypeOfValue([{ a: 0 }, { b: true }, { a: '', b: true }])
         ).toEqual(`{
-    "a": (number | undefined | string),
-    "b": (undefined | boolean)
+    "a"?: (number | string),
+    "b"?: boolean
 }[]`);
         expect(inferStringTypeOfValue([[''], []])).toEqual('string[][]');
     });
@@ -57,8 +57,8 @@ describe('Test Type Generation', () => {
                 { a: '', b: true },
             ])
         ).toEqual(`{
-    "a": (number | undefined | string),
-    "b": (undefined | boolean)
+    "a"?: (number | string),
+    "b"?: boolean
 }`);
     });
 });

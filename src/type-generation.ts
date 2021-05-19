@@ -18,7 +18,7 @@ type Type =
       }
     | { type: 'union'; options: Type[] };
 
-type Union = Type & { type: 'union' };
+type UnionType = Type & { type: 'union' };
 
 // This function assumes both types are flattened.
 // It returns true if the two types are identical, except for object and union
@@ -72,7 +72,7 @@ function deepFlatten(type: Type): Type {
 
 // This function flattens a union type (if any of its options are unions
 //   themselves, they are expanded). It is co-recursive with deepFlatten.
-function flattenUnion(group: Union): Type {
+function flattenUnion(group: UnionType): Type {
     const flattenedOptions = group.options
         .reduce((acc: Type[], option) => {
             if (option.type === 'union') {
@@ -215,6 +215,21 @@ function indent(block: string, offset: string): string {
         .join('\n');
 }
 
+// This function assumes that the input type is flattened and one of its
+// options is "undefined".
+function removeUndefinedFromUnion(type: UnionType): Type {
+    if (type.options.length === 1) {
+        return { type: 'undefined' };
+    } else if (type.options.length === 2) {
+        return type.options.find(({ type }) => type !== 'undefined')!;
+    } else {
+        return {
+            type: 'union',
+            options: type.options.filter(({ type }) => type !== 'undefined')
+        }
+    }
+}
+
 function stringify(type: Type): string {
     if (type.type === 'array') {
         const items = stringify(type.items);
@@ -231,7 +246,12 @@ function stringify(type: Type): string {
             return '{}';
         }
         const fields = type.fields
-            .map(({ key, value }) => `"${key}": ${stringify(value)}`)
+            .map(({ key, value }) => {
+                if (value.type === 'union' && value.options.some(({ type }) => type === 'undefined')) {
+                    return `"${key}"?: ${stringify(removeUndefinedFromUnion(value))}`;
+                }
+                return `"${key}": ${stringify(value)}`;
+            })
             .join(',\n');
         return `{\n${indent(fields, '    ')}\n}`;
     }
