@@ -9,6 +9,7 @@ import {
     computeAllowedSelectors,
     ConfigMapper,
     ConfigMapperOptions,
+    DEFAULT_SELECTOR,
 } from './config-mapper';
 import { generateTypeScriptModule } from './type-generation';
 
@@ -96,12 +97,15 @@ ${globalVarName} = ${JSON.stringify(configToBeWritten, null, 4)};
             options.useSelectors,
             options.addSelectors
         );
-        const allEnvsBaseConfig = allowedSelectors.map((selector) =>
-            mapConfig(configObj, {
-                ...configMapperOptions,
-                env: selector,
-            })
-        );
+        const allEnvsBaseConfig = allowedSelectors
+            .filter((selector) => selector !== DEFAULT_SELECTOR)
+            .map((selector) => new ConfigMapper({
+                    ...configMapperOptions,
+                    env: selector,
+                })
+            )
+            .filter((configMapper) => configMapper.checkIfEnvIsInUse(configObj))
+            .map((configMapper) => configMapper.mapConfig(configObj));
 
         moduleDefinition = `${header}
 ${generateTypeScriptModule(

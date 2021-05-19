@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { logErrorAndThrow } from './utils';
 
-const DEFAULT_SELECTOR = 'default';
+export const DEFAULT_SELECTOR = 'default';
 const WHITELIST_SELECTORS = [DEFAULT_SELECTOR, 'local', 'dev', 'test', 'prod'];
 const NODE_ENV_ALIASES: Record<string, string> = {
     development: 'dev',
@@ -46,6 +46,23 @@ export class ConfigMapper {
             );
         }
         this.envSelector = envSelector;
+    }
+
+    checkIfEnvIsInUse(obj: Record<string, any>) {
+        if (!_.isPlainObject(obj) || Object.keys(obj).length === 0) {
+            return false;
+        }
+        if (this.env in obj) {
+            return true;
+        } else if (_.intersection(Object.keys(obj), this.allowedSelectors).length > 0) {
+            return false;
+        }
+        for (const key in obj) {
+            if (this.checkIfEnvIsInUse(obj[key])) {
+                return true;
+            }
+        }
+        return false;
     }
 
     validateConfigObjectLevel(
