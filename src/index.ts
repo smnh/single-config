@@ -74,7 +74,7 @@ export async function buildConfig(
     const extendedConfig =
         ((!options.excludeDynamicConfigFromFile ||
             moduleType === 'typescript') &&
-            (await options.loadDynamicConfig?.(baseConfig))) ??
+            (await options.loadDynamicConfig?.(JSON.parse(JSON.stringify(baseConfig))))) ??
         baseConfig;
     const configToBeWritten = options.excludeDynamicConfigFromFile
         ? baseConfig

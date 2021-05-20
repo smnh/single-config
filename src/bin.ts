@@ -4,7 +4,7 @@ import { ArgumentParser } from 'argparse';
 import { buildConfig } from './index';
 
 const parser = new ArgumentParser({
-    version: '1.0.0',
+    version: '2.0.0',
     addHelp: true,
     description: 'Builds a module (default: ./config.js) from a single json configuration file (default: ./config.json) ' +
     'by selecting object nodes whose properties names match the current NODE_ENV ("prod" mapped to "production", "dev" ' +
