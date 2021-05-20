@@ -31,6 +31,7 @@ configuration values for all possible environments.
 
 ```json
 {
+    "_envs": ["local", "dev", "prod"],
     "myProp": {
         "default": "myDefaultValue",
         "local": "myLocalValue",
@@ -97,8 +98,6 @@ console.assert(config.parentProp.childProp);
 - `--input`: The file path of the input json relative to the current working directory, default: ./config.json
 - `--output`: The file path of the output module relative to the current working directory, default: ./config.js
 - `--env`: Environment value (for dev or prod specify "development" or "production"), if specified overrides NODE_ENV
-- `--add-selectors`: Comma-separated selectors that will be added to the default set of selectors, ignored if --use-selectors is specified
-- `--use-selectors`: Comma-separated selectors that will be used instead the default set of selectors, the `default` selector will not be overridden
 
 
 ## Environment selectors
@@ -108,6 +107,11 @@ console.assert(config.parentProp.childProp);
 - `dev`: used if `NODE_ENV` is `development`
 - `prod`: used if `NODE_ENV` is `production`
 - `test`: used if `NODE_ENV` is `test`
+
+The environment can also be supplied manually.
+
+The list of selectors the configuration file supports needs to be specified
+in a top-level value in the JSON file, in the `"_envs"` key.
 
 > Matching selectors for `development` and `production` are `dev` and
   `prod` respectively. This is to allow using the shorter versions
@@ -129,6 +133,7 @@ all other sibling nodes at this level must also be environment selectors.
 
 ```json
 {
+    "_envs": ["local", "dev", "prod"],
     "simpleValue": {
         "default": "hello",
         "prod": "world"
@@ -156,6 +161,7 @@ console.assert(config.object.nestedValue === "bar");
 
 ```json
 {
+    "_envs": ["local", "dev", "prod"],
     "simpleValue": {
         "local": {
             "property": true,
@@ -184,12 +190,13 @@ Therefore, instead of doing this:
 
 ```json
 {
+    "_envs": ["dev", "prod"],
     "parentProp": {
         "dev": {
             "childProp1": true,
             "childProp2": "foo"
         },
-        "dev": {
+        "prod": {
             "childProp1": false,
             "childProp2": "bar"
         }
@@ -201,6 +208,7 @@ do this:
 
 ```json
 {
+    "_envs": ["dev", "prod"],
     "parentProp": {
         "childProp1": {
             "dev": true,
@@ -235,11 +243,12 @@ build script.
     "build": "npm run build-config-local && webpack"
   },
   "dependencies": {
-    "single-config": "^1.0.0",
+    "single-config": "^2.0.0",
     ...
   }
 }
 ```
+
 
 ## Configuration JSON Restriction
 
@@ -247,17 +256,17 @@ The build script checks for the following restrictions and will throw an
 error if one of them is not fulfilled.
 
 - Configuration property names can not use environment selectors:
-  `default`, `local`, `dev`, `test`, `prod`. Although objects referenced
-  by environment selectors can have such properties.
+  `default`, `local`, `dev`, `test`, `prod` (or whichever environment selectors
+  were configured, plus `default`). Although objects referenced by environment
+  selectors can have such properties.
 - Environment selector level must have the current `NODE_ENV` or
-  the `default` selector. For this reason, it is suggested not to use
-  `default` selector to ensure that every environment has its own
-  configuration value.
+  the `default` selector.
 - Environment selector level must include only environment selectors. If
   environment selector is used, then all its sibling nodes must be
   environment selectors as well.
 - Environment selectors must appear at some level of any branch of the
   configuration json.
+
 
 ## Generating Typed Configuration
 

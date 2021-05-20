@@ -1,9 +1,9 @@
 import path from 'path';
 import { promises as fs } from 'fs';
 
-export function logErrorAndThrow(message: string): void {
-    console.error('\x1b[31m' + message + '\x1b[0m');
-    throw new Error(message);
+export function logErrorAndThrow(error: Error): void {
+    console.error('\x1b[31m' + error.message + '\x1b[0m');
+    throw error;
 }
 
 export async function fileExists(filePath: string): Promise<boolean> {

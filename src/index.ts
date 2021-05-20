@@ -5,12 +5,7 @@ import {
     ensureDirectoryExistence,
     fileExists,
 } from './utils';
-import {
-    computeAllowedSelectors,
-    ConfigMapper,
-    ConfigMapperOptions,
-    DEFAULT_SELECTOR,
-} from './config-mapper';
+import { ConfigObj, ConfigMapper, ConfigMapperOptions } from './config-mapper';
 import { generateTypeScriptModule } from './type-generation';
 
 export { ConfigMapper } from './config-mapper';
@@ -18,17 +13,14 @@ export { ConfigMapper } from './config-mapper';
 export let config: Record<string, any> | null = null;
 
 export function mapConfig(
-    configObj: Record<string, any>,
+    configObj: ConfigObj,
     options: ConfigMapperOptions
 ): Record<string, any> {
     const configMapper = new ConfigMapper(options);
     return configMapper.mapConfig(configObj);
 }
 
-export interface BuildConfigOptions
-    extends Omit<ConfigMapperOptions, 'useSelectors' | 'addSelectors'> {
-    useSelectors?: string[];
-    addSelectors?: string[];
+export interface BuildConfigOptions extends ConfigMapperOptions {
     moduleType?: 'globals' | 'node' | 'typescript';
     globalModuleName?: string;
     typeOnlyOutput?: string;
@@ -48,7 +40,7 @@ export async function buildConfig(
     const configMapperOptions: ConfigMapperOptions = {};
 
     if (!(await fileExists(inputFilePath))) {
-        logErrorAndThrow(`error building config, ${inputFilePath} not found`);
+        logErrorAndThrow(new Error(`error building config, ${inputFilePath} not found`));
     }
 
     options = options ?? {};
@@ -56,13 +48,7 @@ export async function buildConfig(
     configMapperOptions.env =
         options.env || process.env.NODE_ENV || 'development';
 
-    if (options.useSelectors) {
-        configMapperOptions.useSelectors = options.useSelectors;
-    } else if (options.addSelectors) {
-        configMapperOptions.addSelectors = options.addSelectors;
-    }
-
-    const configObj = require(inputFilePath);
+    const configObj: ConfigObj = require(inputFilePath);
 
     console.info(
         `building configuration, env=${configMapperOptions.env}, input=${inputFilePath}, output=${outputFilePath}`
@@ -74,7 +60,9 @@ export async function buildConfig(
     const extendedConfig =
         ((!options.excludeDynamicConfigFromFile ||
             moduleType === 'typescript') &&
-            (await options.loadDynamicConfig?.(JSON.parse(JSON.stringify(baseConfig))))) ??
+            (await options.loadDynamicConfig?.(
+                JSON.parse(JSON.stringify(baseConfig))
+            ))) ??
         baseConfig;
     const configToBeWritten = options.excludeDynamicConfigFromFile
         ? baseConfig
@@ -93,19 +81,12 @@ module.exports = ${JSON.stringify(configToBeWritten, null, 4)};
 ${globalVarName} = ${JSON.stringify(configToBeWritten, null, 4)};
 `;
     } else if (moduleType === 'typescript') {
-        const allowedSelectors = computeAllowedSelectors(
-            options.useSelectors,
-            options.addSelectors
+        const allEnvsBaseConfig = configObj._envs.map((selector) =>
+            mapConfig(configObj, {
+                ...configMapperOptions,
+                env: selector,
+            })
         );
-        const allEnvsBaseConfig = allowedSelectors
-            .filter((selector) => selector !== DEFAULT_SELECTOR)
-            .map((selector) => new ConfigMapper({
-                    ...configMapperOptions,
-                    env: selector,
-                })
-            )
-            .filter((configMapper) => configMapper.checkIfEnvIsInUse(configObj))
-            .map((configMapper) => configMapper.mapConfig(configObj));
 
         moduleDefinition = `${header}
 ${generateTypeScriptModule(
@@ -118,7 +99,9 @@ ${generateTypeScriptModule(
         if (options.typeOnlyOutput) {
             await fs.writeFile(
                 options.typeOnlyOutput,
-                `// This file was automatically generated together with ${path.basename(outputFilePath)}
+                `// This file was automatically generated together with ${path.basename(
+                    outputFilePath
+                )}
 ${generateTypeScriptModule(
     configToBeWritten,
     extendedConfig,

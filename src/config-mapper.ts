@@ -1,72 +1,33 @@
 import _ from 'lodash';
 import { logErrorAndThrow } from './utils';
 
-export const DEFAULT_SELECTOR = 'default';
-const WHITELIST_SELECTORS = [DEFAULT_SELECTOR, 'local', 'dev', 'test', 'prod'];
+const DEFAULT_SELECTOR = 'default';
 const NODE_ENV_ALIASES: Record<string, string> = {
     development: 'dev',
     production: 'prod',
 };
 
-export function computeAllowedSelectors(useSelectors?: string[], addSelectors?: string[]): string[] {
-    if (useSelectors) {
-        return _.uniq(
-            [DEFAULT_SELECTOR].concat(useSelectors)
-        );
-    }
-    if (addSelectors) {
-        return _.uniq(
-            WHITELIST_SELECTORS.concat(addSelectors)
-        );
-    }
-    return WHITELIST_SELECTORS;
-}
+export type ConfigObj = Record<string, any> & { _envs: string[] };
 
 export interface ConfigMapperOptions {
     env?: string;
-    useSelectors?: string[];
-    addSelectors?: string[];
 }
 
 export class ConfigMapper {
     env: string;
     confPath: string[];
-    allowedSelectors: string[];
     envSelector: string;
 
     constructor(options: ConfigMapperOptions) {
         options = options || {};
         this.env = options.env || process.env.NODE_ENV || 'development';
         this.confPath = [];
-        this.allowedSelectors = computeAllowedSelectors(options.useSelectors, options.addSelectors);
-        const envSelector = NODE_ENV_ALIASES[this.env] ?? this.env;
-        if (!this.allowedSelectors.includes(envSelector!)) {
-            logErrorAndThrow(
-                `error building config, environment selector '${envSelector}' is not supported`
-            );
-        }
-        this.envSelector = envSelector;
-    }
-
-    checkIfEnvIsInUse(obj: Record<string, any>) {
-        if (!_.isPlainObject(obj) || Object.keys(obj).length === 0) {
-            return false;
-        }
-        if (this.env in obj) {
-            return true;
-        } else if (_.intersection(Object.keys(obj), this.allowedSelectors).length > 0) {
-            return false;
-        }
-        for (const key in obj) {
-            if (this.checkIfEnvIsInUse(obj[key])) {
-                return true;
-            }
-        }
-        return false;
+        this.envSelector = NODE_ENV_ALIASES[this.env] ?? this.env;
     }
 
     validateConfigObjectLevel(
         obj: Record<string, any>,
+        envs: string[],
         envSelectorOnly: boolean
     ): void {
         // When we check configuration node for environment selectors, we don't
@@ -74,33 +35,59 @@ export class ConfigMapper {
         // And vice-versa, when we check configuration node for configuration
         // properties, we don't want environment selectors to be present on that node.
         Object.keys(obj).forEach((key) => {
-            if (envSelectorOnly !== this.allowedSelectors.includes(key)) {
+            if (envSelectorOnly !== envs.includes(key)) {
                 logErrorAndThrow(
-                    `error building config, illegal structure: reached configuration node '${this.confPath.join(
-                        '.'
-                    )}' having environment selector mixed with configuration field`
+                    new Error(
+                        `error building config, illegal structure: reached configuration node '${this.confPath.join(
+                            '.'
+                        )}' having environment selector mixed with configuration field`
+                    )
                 );
             }
         });
     }
 
-    mapConfig(obj: Record<string, any>) {
-        const mappedConfig = this.mapConfigNode(obj);
+    mapConfig(configObj: ConfigObj) {
+        if (
+            !Array.isArray(configObj._envs) ||
+            typeof configObj._envs[0] !== 'string'
+        ) {
+            logErrorAndThrow(
+                new Error(
+                    'error building config, _envs must be specified and must be an array of strings'
+                )
+            );
+        }
+        const { _envs: userEnvs, ...obj } = configObj;
+        if (!userEnvs.includes(this.envSelector!)) {
+            logErrorAndThrow(
+                new Error(
+                    `error building config, environment selector '${this.envSelector}' is not supported`
+                )
+            );
+        }
+        const envs = [DEFAULT_SELECTOR].concat(userEnvs);
+        const mappedConfig = this.mapConfigNode(obj, envs);
         return Object.assign({ env: this.env }, mappedConfig);
     }
 
-    mapConfigNode(obj: Record<string, any>): Record<string, any> {
+    mapConfigNode(
+        obj: Record<string, any>,
+        envs: string[]
+    ): Record<string, any> {
         if (!_.isPlainObject(obj) || Object.keys(obj).length === 0) {
             logErrorAndThrow(
-                `error building config, illegal structure: reached leaf configuration node '${this.confPath.join(
-                    '.'
-                )}' before reaching environment selector`
+                new Error(
+                    `error building config, illegal structure: reached leaf configuration node '${this.confPath.join(
+                        '.'
+                    )}' before reaching environment selector`
+                )
             );
         }
 
         if (this.envSelector in obj) {
             // If current object node has current environment selector, use its value.
-            this.validateConfigObjectLevel(obj, true);
+            this.validateConfigObjectLevel(obj, envs, true);
             const confValue = obj[this.envSelector];
             if (
                 DEFAULT_SELECTOR in obj &&
@@ -115,17 +102,17 @@ export class ConfigMapper {
             }
         } else if (DEFAULT_SELECTOR in obj) {
             // If current object node has no current environment selector but has the 'default' selector, use its value.
-            this.validateConfigObjectLevel(obj, true);
+            this.validateConfigObjectLevel(obj, envs, true);
             return obj[DEFAULT_SELECTOR];
         }
 
         const result: Record<string, any> = {};
         // We did not find nor the 'default' selector nor current environment selector, make sure no other selectors
         // present in current object node.
-        this.validateConfigObjectLevel(obj, false);
+        this.validateConfigObjectLevel(obj, envs, false);
         Object.keys(obj).forEach((key) => {
             this.confPath.push(key);
-            result[key] = this.mapConfigNode(obj[key]);
+            result[key] = this.mapConfigNode(obj[key], envs);
             this.confPath.pop();
         });
         return result;

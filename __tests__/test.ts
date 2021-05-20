@@ -16,6 +16,7 @@ describe('Test ConfigMapper', () => {
     test('use "development" if env was not provided and NODE_ENV was not defined', () => {
         delete process.env.NODE_ENV;
         const configObj = {
+            _envs: ['dev', 'prod'],
             prop: {
                 default: 'defaultValue',
                 dev: 'devValue',
@@ -36,6 +37,7 @@ describe('Test ConfigMapper', () => {
     test('use the defined NODE_ENV if env was not specified', () => {
         process.env.NODE_ENV = 'production';
         const configObj = {
+            _envs: ['dev', 'prod'],
             prop: {
                 default: 'defaultValue',
                 dev: 'devValue',
@@ -56,6 +58,7 @@ describe('Test ConfigMapper', () => {
         process.env.NODE_ENV = 'production';
         const options = { env: 'development' };
         const configObj = {
+            _envs: ['dev', 'prod'],
             prop: {
                 default: 'defaultValue',
                 dev: 'devValue',
@@ -74,6 +77,7 @@ describe('Test ConfigMapper', () => {
 
     test('test build config with CommonJS as default moduleType', async () => {
         const configObj = {
+            _envs: ['dev', 'prod'],
             prop: {
                 default: 'defaultValue',
                 dev: 'devValue',
@@ -116,6 +120,7 @@ describe('Test ConfigMapper', () => {
 
     test('test build config with globals as moduleType', async () => {
         const configObj = {
+            _envs: ['dev', 'prod'],
             prop: {
                 default: 'defaultValue',
                 dev: 'devValue',
@@ -158,6 +163,7 @@ describe('Test ConfigMapper', () => {
 
     test('test build config with TypeScript as moduleType', async () => {
         const configObj = {
+            _envs: ['dev', 'prod'],
             prop: {
                 default: 'defaultValue',
                 dev: 'devValue',
@@ -210,11 +216,20 @@ export default (config as Config);
         );
     });
 
+    test('build fails if no envs are specified', () => {
+        expect(() => {
+            const configMapper = require('../src/index');
+            const options = { env: 'prod' };
+            const configObj = {};
+            configMapper.mapConfig(configObj, options);
+        }).toThrow();
+    });
+
     test('build fails if provided env is not supported', () => {
         expect(() => {
             const configMapper = require('../src/index');
             const options = { env: 'unsupported' };
-            const configObj = {};
+            const configObj = { _envs: ['dev', 'prod'] };
             configMapper.mapConfig(configObj, options);
         }).toThrow();
     });
@@ -223,7 +238,7 @@ export default (config as Config);
         expect(() => {
             const configMapper = require('../src/index');
             const options = { env: 'development' };
-            const configObj = {};
+            const configObj = { _envs: ['dev', 'prod'] };
             configMapper.mapConfig(configObj, options);
         }).toThrow();
     });
@@ -233,6 +248,7 @@ export default (config as Config);
             const configMapper = require('../src/index');
             const options = { env: 'development' };
             const configObj = {
+                _envs: ['dev'],
                 normalProp: {
                     dev: 'devValue',
                 },
@@ -249,6 +265,7 @@ export default (config as Config);
             const configMapper = require('../src/index');
             const options = { env: 'development' };
             const configObj = {
+                _envs: ['dev'],
                 prop: {
                     dev: 'devValue',
                     notSelectorProp: 'value',
@@ -263,6 +280,7 @@ export default (config as Config);
             const configMapper = require('../src/index');
             const options = { env: 'development' };
             const configObj = {
+                _envs: ['dev'],
                 prop: {
                     default: 'defaultValue',
                     notSelectorProp: 'value',
@@ -277,6 +295,7 @@ export default (config as Config);
             const configMapper = require('../src/index');
             const options = { env: 'development' };
             const configObj = {
+                _envs: ['dev', 'test'],
                 prop: {
                     test: 'testValue',
                     notSelectorProp: 'value',
@@ -290,6 +309,7 @@ export default (config as Config);
         const configMapper = require('../src/index');
         const options = { env: 'development' };
         const configObj = {
+            _envs: ['dev'],
             prop: {
                 default: {
                     prop1: 'prop1Default',
@@ -318,6 +338,7 @@ export default (config as Config);
         const configMapper = require('../src/index');
         const options = { env: 'development' };
         const configObj = {
+            _envs: ['dev', 'test', 'prod'],
             prop: {
                 default: 'defaultValue',
                 test: 'testValue',
@@ -337,9 +358,9 @@ export default (config as Config);
         const configMapper = require('../src/index');
         const options = {
             env: 'devNew',
-            useSelectors: ['devNew', 'dev', 'prod'],
         };
         const configObj = {
+            _envs: ['devNew', 'prod'],
             prop: {
                 default: 'defaultValue',
                 devNew: 'devNewValue',
@@ -359,9 +380,9 @@ export default (config as Config);
         const configMapper = require('../src/index');
         const options = {
             env: 'devNew',
-            addSelectors: ['devNew'],
         };
         const configObj = {
+            _envs: ['devNew', 'prod'],
             prop: {
                 default: 'defaultValue',
                 devNew: 'devNewValue',

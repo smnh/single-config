@@ -29,14 +29,6 @@ parser.addArgument(['-e', '--env'], {
     help: 'Environment value (for dev or prod specify "development" or "production"), if specified overrides NODE_ENV'
 });
 
-parser.addArgument(['--add-selectors'], {
-    help: 'Comma-separated selectors that will be added to the default set of selectors, ignored if --use-selectors is specified'
-});
-
-parser.addArgument(['--use-selectors'], {
-    help: 'Comma-separated selectors that will be used instead the default set of selectors, the default selector will not be overridden'
-});
-
 parser.addArgument(['--module-type'], {
     choices: ['node', 'globals', 'typescript'],
     defaultValue: 'node',
@@ -53,8 +45,6 @@ const inputFilename = args.input;
 const outputFilename = args.output;
 const options = {
     env: args.env,
-    addSelectors: args.add_selectors?.split(','),
-    useSelectors: args.use_selectors?.split(','),
     moduleType: args.module_type,
     globalModuleName: args.global_module_name,
     typeOnlyOutput: args.type_only_output
