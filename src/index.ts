@@ -108,8 +108,7 @@ ${generateTypeScriptModule(
     allEnvsBaseConfig,
     options.excludeDynamicConfigFromFile ?? false,
     true
-)};
-`
+)}`
             );
         }
     }

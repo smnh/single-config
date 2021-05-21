@@ -279,9 +279,9 @@ Note that the types generated are a best-effort guess. It is possible to
 override types manually if needed.
 
 ```typescript
-import generatedConfig from './generated-config'; // generated-config.ts
+import generatedConfig, { Config as OriginalConfig } from './generated-config'; // generated-config.ts
 type ConfigUsers = Record<string, number>;
-type Config = Omit<typeof config, 'users'> & { users: ConfigUsers };
+type Config = Omit<OriginalConfig, 'users'> & { users: ConfigUsers };
 
 // You may or may not need to cast "generatedConfig" to "any".
 const config: Config = generatedConfig;

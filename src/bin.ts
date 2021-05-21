@@ -52,4 +52,4 @@ const options = {
 
 (async () => {
     await buildConfig(inputFilename, outputFilename, options);
-});
+})();
