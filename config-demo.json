@@ -1,4 +1,10 @@
 {
+    "_envs": [
+        "local",
+        "test",
+        "dev",
+        "prod"
+    ],
     "prop": {
         "default": "defaultValue",
         "local": "localValue",
