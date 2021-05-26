@@ -69,13 +69,15 @@ export async function buildConfig(
         : extendedConfig;
 
     const header = `// This file was automatically generated at ${new Date().toISOString()}`;
-    let moduleDefinition = `${header}
-module.exports = ${JSON.stringify(configToBeWritten, null, 4)};
-`;
+    let moduleDefinition: string | undefined;
 
     await ensureDirectoryExistence(outputFilePath);
 
-    if (moduleType === 'globals') {
+    if (moduleType === 'node') {
+        moduleDefinition = `${header}
+module.exports = ${JSON.stringify(configToBeWritten, null, 4)};
+`;
+    } else if (moduleType === 'globals') {
         const globalVarName = options.globalModuleName || 'config';
         moduleDefinition = `${header}
 ${globalVarName} = ${JSON.stringify(configToBeWritten, null, 4)};
@@ -113,9 +115,11 @@ ${generateTypeScriptModule(
         }
     }
 
-    await fs.writeFile(outputFilePath, moduleDefinition);
+    if (moduleDefinition) {
+        await fs.writeFile(outputFilePath, moduleDefinition);
 
-    if (moduleType === 'node') {
-        config = require(outputFilePath);
+        if (moduleType === 'node') {
+            config = require(outputFilePath);
+        }
     }
 }
