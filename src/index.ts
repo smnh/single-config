@@ -74,8 +74,10 @@ export async function buildConfig(
     await ensureDirectoryExistence(outputFilePath);
 
     if (moduleType === 'node') {
+        // The second line maintains compatibility with ES Modules (TypeScript default).
         moduleDefinition = `${header}
 module.exports = ${JSON.stringify(configToBeWritten, null, 4)};
+module.exports.default = module.exports;
 `;
     } else if (moduleType === 'globals') {
         const globalVarName = options.globalModuleName || 'config';
